@@ -1,0 +1,169 @@
+Team 3 - Phase 2: ER Schema의 관계형 Schema 매핑
+프로젝트: 식재료 매니저 - 채움
+
+1. 기준 및 표기
+
+최종 개념 설계의 기준은 Team3-ER-Schema.pdf이다. 이 파일은 제공된
+2.pdf의 1페이지를 변경 없이 추출한 것이다. 물리 구현의 기준은 함께
+제출하는 Team3-Phase2-(1).sql이다. 아래에서는 관계를 ERD의 위쪽에서
+아래쪽으로 설명하고, 관계마다 양쪽 엔티티의 역할과 매핑 방법을 구분한다.
+PK는 기본 키, FK는 외래 키이다. ERD의 최소 참여와 SQL이 실제로
+강제하는 제약은 구분한다. ERD 원본은 그대로 사용하며, SQL과의 차이는
+5절에 명시한다.
+
+2. 기존 제출안 정정 및 최종 설계 범위
+
+2.1 잘못 설명한 속성과 명칭 정정
+- 이번 최종 ERD와 SQL에는 ORDER Entity 삭제. 관련 요소 모두 제거.
+- 엔티티 SALES는 SALE로, 관계 CONSIST_OF는 CONSISTS_OF로 정정.
+- 기존 PROVIDER의 attribute 중 주소 설명은 삭제.
+- INGREDIENT의 Type은 다중값 속성이고, Base_unit은 단일값 속성.
+  STORE의 Address는 Zip_code와 Detailed_addr로 구성된 복합 속성.
+- 역할은 속성 목록이 아니라 관계에서 양쪽 엔티티가 수행하는 의미로
+  재작성. 각 관계의 역할은 4절에 별도로 제시함.
+
+2.2 기존 제안과 현재 구현의 구분
+기존 문서의 ORDER_LINE, SUPPLY_OFFER, PRICE_HISTORY, STOCK_POLICY,
+STOCK_ADJUSTMENT, GROUP_BUY, GROUP_BUY_PARTICIPATION 등은 확장
+제안이었다. 이번 최종 ERD나 DDL에 반영된 구조로 설명하지 않는다.
+ORDER 역시 이번 제출에서는 삭재했다. 발주 설정은 별도 STOCK_POLICY가
+아니라 STORE와 INGREDIENT 사이의 SETS_POLICY_FOR로 표현한다.
+재고 조정은 별도 엔티티 없이 STOCK_OUT의 OUT_TYPE에 ADJUSTMENT라는
+샘플 값이 있지만, 증감 방향을 표현하는 추가 규칙은 구현되어 있지 않다.
+
+판매 금액은 기존 제안의 Net_sales_amount를 저장하는 대신, 최종 ERD의
+Sale_unit_price를 SALE에 저장하고 Sales_amount를 유도하는 구조이다.
+
+
+3. 전체 엔티티 및 속성의 기본 매핑
+
+(1) STORE
+STORE(Store_id, Phone, Store_name, Zip_code, Detailed_addr)
+PK: Store_id.
+Store_id는 매장 식별자, Phone은 연락처, Store_name은 매장 이름이다.
+복합 속성 Address는 별도 컬럼으로 만들지 않고 구성 요소 Zip_code와
+Detailed_addr로 분해한다. Zip_code는 VARCHAR2(5 BYTE)이며 숫자 다섯
+자리 형식을 CHECK로 검사한다. NULL 금지는 별도 정의되어 있지 않다.
+
+(2) PROVIDER
+PROVIDER(Provider_id, Phone, Provider_name)
+PK: Provider_id.
+공급처 식별자, 연락처, 이름을 저장한다.
+
+(3) INGREDIENT
+INGREDIENT(Ingre_id, Name, Base_unit)
+PK: Ingre_id.
+식재료 식별자, 식재료명, 수량의 기준 단위를 저장한다.
+다중값 Type은 별도 INGREDIENT_TYPE으로 매핑한다.
+
+(4) RECIPE: 약한 엔티티
+RECIPE(Recipe_name, Store_id, Price)
+PK: (Recipe_name, Store_id).
+Recipe_name은 소유 매장 안에서 레시피를 구분하는 부분 키이며,
+Store_id와 결합해야 전체적으로 유일하다. Price는 메뉴 가격이다.
+Store_id는 STORE를 참조하는 FK이며 PK의 일부이므로 NULL이 될 수 없다.
+
+(5) INVENTORY_BATCH
+INVENTORY_BATCH(Batch_id, Unit_price, Exp_date, Received_at,
+                Received_quantity, Store_id, Provider_id, Ingre_id)
+PK: Batch_id.
+Unit_price는 입고 배치의 기준 단위당 매입단가, Exp_date는 소비기한,
+Received_at은 입고 시점, Received_quantity는 입고 수량이다.
+Store_id, Provider_id, Ingre_id는 4절 관계에서 유입된 FK이다.
+Current_quantity는 유도 속성이므로 저장 컬럼에서 제외한다.
+
+(6) STOCK_OUT
+STOCK_OUT(Out_id, Occurred_at, Out_type, Quantity, Batch_id)
+PK: Out_id.
+Occurred_at은 출고 발생 시각, Out_type은 출고 구분, Quantity는 출고량이다.
+샘플 구분은 USAGE, WASTE, ADJUSTMENT이며 허용값 CHECK는 없다.
+Batch_id는 해당 배치의 FK이다. Waste_cost는 유도 속성으로 저장하지 않는다.
+
+(7) SALE
+SALE(Sales_id, Sales_date, Sold_quantity, Sale_unit_price,
+     Recipe_name, Store_id)
+PK: Sales_id.
+Sales_date는 판매일, Sold_quantity는 판매량, Sale_unit_price는 
+판매 기록의 단가이다. 현재 RECIPE.Price와 독립적으로 저장한다.
+(Recipe_name, Store_id)는 RECIPE를 참조하는 복합 FK이며 두 컬럼 모두
+NOT NULL이다. Sales_amount는 유도 속성이므로 저장하지 않는다.
+같은 날짜·같은 레시피의 중복을 막는 UNIQUE 제약은 현재 SQL에 없다.
+
+(8) INGREDIENT_TYPE: 다중값 속성의 별도 릴레이션
+INGREDIENT_TYPE(Ingre_id, Type)
+PK: (Ingre_id, Type). FK: Ingre_id -> INGREDIENT(Ingre_id).
+한 식재료에 여러 분류를 저장하며 같은 식재료·분류 쌍의 중복을 막는다.
+이 테이블은 ERD의 추가 독립 엔티티를 뜻하지 않고 다중값 속성의 매핑이다.
+
+관계에서 생성되는 CONSISTS_OF와 SETS_POLICY_FOR까지 포함하여
+총 10개 테이블이다. 두 관계 테이블의 전체 속성은 아래에 제시한다.
+
+4. 관계 순서에 따른 매핑과 양쪽 역할
+
+4.1 HAS_RECIPE: STORE - RECIPE
+역할: 레시피 소유 매장(STORE) -- 매장에 소속된 메뉴(RECIPE).
+ERD: STORE (0,N), RECIPE (1,1)의 식별 관계.
+매핑: 1:N의 N쪽인 RECIPE에 Store_id를 넣고 STORE를 참조한다.
+약한 엔티티의 부분 키 Recipe_name과 소유자 키 Store_id를 결합한다.
+삭제: ON DELETE 절이 없으므로 참조되는 매장의 삭제를 허용하지 않는다.
+별도 HAS_RECIPE 테이블은 생성하지 않는다.
+
+4.2 HAS_STOCK: STORE - INVENTORY_BATCH
+역할: 재고 보유 매장(STORE) -- 해당 매장의 입고 배치(INVENTORY_BATCH).
+ERD: STORE (0,N), INVENTORY_BATCH (1,1).
+매핑: INVENTORY_BATCH.Store_id -> STORE.Store_id의 FK.
+삭제: 참조 배치가 있는 매장 삭제를 허용하지 않는다.
+
+4.3 SETS_POLICY_FOR: STORE - INGREDIENT
+역할: 발주 기준을 설정하는 매장(STORE) -- 기준 설정 대상 재료(INGREDIENT).
+ERD: 양쪽 (0,N)의 M:N 관계. 관계 속성 Reorder_point,
+유도 관계 속성 Expected_depletion_date가 있다.
+매핑: 별도 릴레이션을 생성한다.
+SETS_POLICY_FOR(Store_id, Ingre_id, PREORDER_POINT)
+PK: (Store_id, Ingre_id).
+FK: Store_id -> STORE.Store_id; Ingre_id -> INGREDIENT.Ingre_id.
+관계 속성 Reorder_point는 SQL의 PREORDER_POINT에 대응한다.
+각 매장·재료 쌍에 기준값을 하나만 저장한다. 유도 속성은 저장하지 않는다.
+삭제: 참조되는 매장이나 재료의 삭제를 허용하지 않는다.
+
+4.4 SUPPLIES: PROVIDER - INVENTORY_BATCH
+역할: 입고 공급처(PROVIDER) -- 공급받은 입고 배치(INVENTORY_BATCH).
+ERD: PROVIDER (0,N), INVENTORY_BATCH (1,1).
+매핑: INVENTORY_BATCH.Provider_id -> PROVIDER.Provider_id의 FK.
+삭제: ON DELETE SET NULL. 공급처가 삭제되어도 입고 이력은 보존하고
+Provider_id만 NULL로 바꾼다. 이 정책을 위해 해당 FK는 nullable이다.
+따라서 최종 ERD의 (1,1)과 SQL의 선택적 참조 사이에 차이가 있다.
+
+4.5 IS_BATCH_OF: INGREDIENT - INVENTORY_BATCH
+역할: 배치의 재료 종류(INGREDIENT) -- 해당 재료의 입고 배치(INVENTORY_BATCH).
+ERD: INGREDIENT (0,N), INVENTORY_BATCH (1,1).
+매핑: INVENTORY_BATCH.Ingre_id -> INGREDIENT.Ingre_id의 FK.
+삭제: 참조 배치가 있는 재료의 삭제를 허용하지 않는다.
+주의: Ingre_id가 nullable이므로 배치 필수 참여는 SQL에서 미강제이다.
+
+4.6 CONSISTS_OF: RECIPE - INGREDIENT
+역할: 재료로 구성되는 메뉴(RECIPE) -- 메뉴의 구성 재료(INGREDIENT).
+ERD: RECIPE (1,N), INGREDIENT (0,N)의 M:N 관계.
+관계 속성: Amount_per_portion(1인분당 해당 재료의 사용량).
+매핑: RECIPE의 복합 PK와 INGREDIENT의 PK를 함께 가져온다.
+CONSISTS_OF(Recipe_name, Store_id, Ingre_id, Amount_per_portion)
+PK: (Recipe_name, Store_id, Ingre_id).
+FK1: (Recipe_name, Store_id) -> RECIPE(Recipe_name, Store_id).
+FK2: Ingre_id -> INGREDIENT.Ingre_id.
+삭제: 레시피 삭제 시 구성 행은 ON DELETE CASCADE로 함께 삭제한다.
+구성 행이 참조하는 재료의 삭제는 허용하지 않는다.
+
+4.7 HAS_SALES: RECIPE - SALE
+역할: 판매 대상 메뉴(RECIPE) -- 그 메뉴의 판매 기록(SALE).
+ERD: RECIPE (0,N), SALE (1,1).
+매핑: SALE에 (Recipe_name, Store_id)를 복합 FK로 넣는다.
+두 컬럼에 NOT NULL이 있어 각 판매 기록은 반드시 하나의 레시피를 참조한다.
+삭제: 판매 기록이 참조하는 레시피의 삭제를 허용하지 않는다.
+별도 HAS_SALES 테이블은 생성하지 않는다.
+
+4.8 HAS_OUTFLOW: INVENTORY_BATCH - STOCK_OUT
+역할: 출고 원천 배치(INVENTORY_BATCH) -- 배치에서 발생한 출고 기록(STOCK_OUT).
+ERD: INVENTORY_BATCH (0,N), STOCK_OUT (1,1).
+매핑: STOCK_OUT.Batch_id -> INVENTORY_BATCH.Batch_id의 FK.
+삭제: ON DELETE CASCADE. 배치를 삭제하면 관련 출고 기록도 삭제된다.
+
