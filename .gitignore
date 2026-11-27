@@ -1,8 +1,17 @@
+# SQLite
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
 
-.venv/
+.env
 __pycache__/
-*.py[cod]
-
+venv/
 .venv/
-__pycache__/
-*.py[cod]
+instance/
+*.log
+.DS_Store
+.idea/
+.vscode/
