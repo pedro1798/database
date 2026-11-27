@@ -1,18 +1,122 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask 프로젝트</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>재료 및 판매 관리</title>
     <link rel="stylesheet"
           href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/main.js') }}" defer></script>
 </head>
 <body>
-    <main>
-        <h1>Flask 기본 페이지</h1>
-        <p id="message">HTML과 CSS가 연결되었습니다.</p>
-        <button id="test-button" type="button">JavaScript 확인</button>
-    </main>
+<main>
+    <header>
+        <h1>재료 및 판매 관리</h1>
+        <span>재고 · 판매 · 원가 조회</span>
+    </header>
+
+    <form id="search-form" class="search-panel">
+        <div class="filter">
+            <label for="feature">조회 기능</label>
+            <select id="feature" name="feature" class="required">
+                <option value="stock">1. 재료 재고 확인</option>
+                <option value="sales">2. 판매량 확인</option>
+                <option value="frequent">3. 자주 사용하는 재료</option>
+                <option value="waste">4. 폐기량 많은 재료</option>
+                <option value="price">5. 공급자별 재료 시세</option>
+                <option value="margin">6. 메뉴별 마진율</option>
+                <option value="depletion">7. 재료 소진 시점 예측</option>
+                <option value="type">8. 재료 유형별 검색</option>
+                <option value="ranking">9. 동종업계 이익 순위</option>
+                <option value="recipe">10. 공통 재료 레시피 검색</option>
+                <option value="manage">11. 재료 등록 · 수정 · 삭제</option>
+            </select>
+        </div>
+
+        <div class="filter">
+            <label for="store">매장명</label>
+            <input id="store" name="store" placeholder="전체 매장">
+        </div>
+
+        <div class="filter">
+            <label for="start-date">조회 시작일</label>
+            <input id="start-date" name="start_date" type="date">
+        </div>
+
+        <div class="filter">
+            <label for="end-date">조회 종료일</label>
+            <input id="end-date" name="end_date" type="date">
+        </div>
+
+        <div id="extra-filters" class="extra-filters"></div>
+
+        <div class="search-actions">
+            <button type="submit">조회</button>
+            <button type="reset">초기화</button>
+        </div>
+    </form>
+
+    <section id="manage-panel" hidden>
+        <h2>재료 정보 입력</h2>
+
+        <form id="manage-form">
+            <div class="edit-grid">
+                <label>
+                    재료 ID
+                    <input name="ingredient_id"
+                           placeholder="수정·삭제 시 입력">
+                </label>
+                <label>
+                    재료명
+                    <input name="ingredient_name">
+                </label>
+                <label>
+                    재료 유형
+                    <input name="ingredient_type"
+                           placeholder="예: 냉동제품">
+                </label>
+                <label>
+                    재고량
+                    <input name="stock" type="number" min="0" step="any">
+                </label>
+                <label>
+                    단위
+                    <input name="unit" placeholder="예: kg, 개">
+                </label>
+                <label>
+                    단가
+                    <input name="unit_price" type="number" min="0" step="any">
+                </label>
+            </div>
+
+            <div class="edit-actions">
+                <button type="submit" name="action" value="insert">등록</button>
+                <button type="submit" name="action" value="update">수정</button>
+                <button type="submit" name="action" value="delete"
+                        class="danger">삭제</button>
+                <button type="reset">입력 초기화</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="results" aria-labelledby="result-title">
+        <div class="result-heading">
+            <h2 id="result-title">재료 재고 목록</h2>
+            <span id="result-count">0건</span>
+        </div>
+
+        <p id="query-description"></p>
+        <p id="status" role="status">조회 기능과 조건을 선택하세요. 현재는 UI만 구현되어 있습니다.</p>
+
+        <div class="table-wrap">
+            <table>
+                <caption class="sr-only">선택한 기능의 조회 결과</caption>
+                <thead id="result-head"></thead>
+                <tbody id="result-body"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
 </body>
 </html>

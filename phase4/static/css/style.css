@@ -1,21 +1,266 @@
+/* static/css/style.css */
+:root {
+    font-family: "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: #272b30;
+    background: #f5f6f8;
+    font-size: 14px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
-    padding: 40px 20px;
-    font-family: sans-serif;
-    background: #f5f6f8;
-    color: #222;
 }
 
 main {
-    max-width: 720px;
-    margin: 0 auto;
+    padding: 24px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 26px;
+}
+
+h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+header span {
+    color: #59616c;
+}
+
+.search-panel {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 2px solid #383d43;
+    background: white;
+}
+
+.filter {
+    display: grid;
+    grid-template-columns: 130px minmax(0, 1fr);
+    border-bottom: 1px solid #cbd0d7;
+}
+
+.filter > label {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    font-weight: 600;
+    background: #eceef2;
+}
+
+input,
+select,
+button {
+    min-height: 40px;
+    font: inherit;
+    border: 1px solid #b9c0ca;
+    border-radius: 2px;
+}
+
+.filter > input,
+.filter > select {
+    width: calc(100% - 16px);
+    min-width: 0;
+    margin: 8px;
+    padding: 8px 10px;
+}
+
+input,
+select {
+    background: white;
+    color: inherit;
+}
+
+input::placeholder {
+    color: #657080;
+}
+
+.required {
+    background: #fff8cf;
+}
+
+.extra-filters {
+    display: contents;
+}
+
+.search-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px;
+    border-bottom: 1px solid #7d858f;
 }
 
 button {
-    padding: 10px 16px;
-    border: 0;
-    border-radius: 6px;
-    background: #2563eb;
-    color: white;
+    padding: 8px 20px;
+    background: #edf0f4;
+    color: #272b30;
     cursor: pointer;
+}
+
+button[type="submit"] {
+    background: #334f73;
+    border-color: #334f73;
+    color: white;
+}
+
+button:hover {
+    filter: brightness(0.94);
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+    outline: 3px solid #2869b1;
+    outline-offset: 2px;
+}
+
+#manage-panel {
+    margin-top: 28px;
+    padding: 20px;
+    border: 1px solid #cbd0d7;
+    background: white;
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.edit-grid label {
+    display: grid;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.edit-grid input {
+    width: 100%;
+    min-width: 0;
+    padding: 8px 10px;
+    font-weight: normal;
+}
+
+.edit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+button.danger {
+    background: #a32c35;
+    border-color: #a32c35;
+}
+
+.results {
+    margin-top: 40px;
+}
+
+.result-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+#query-description,
+#status {
+    margin: 12px 0;
+    line-height: 1.6;
+}
+
+#query-description {
+    color: #384d69;
+}
+
+#status {
+    color: #59616c;
+}
+
+.table-wrap {
+    overflow-x: auto;
+    min-height: 280px;
+    border-top: 2px solid #383d43;
+    border-bottom: 1px solid #cbd0d7;
+    background: white;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+    padding: 14px 16px;
+    border: 1px solid #d7dbe1;
+    text-align: center;
+}
+
+th {
+    background: #eceef2;
+    font-weight: 600;
+}
+
+.empty {
+    height: 180px;
+    color: #657080;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 760px) {
+    main {
+        padding: 16px;
+    }
+
+    header {
+        display: block;
+    }
+
+    header span {
+        display: block;
+        margin-top: 8px;
+    }
+
+    .search-panel,
+    .edit-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filter {
+        grid-template-columns: 110px minmax(0, 1fr);
+    }
+
+    h1 {
+        font-size: 22px;
+    }
 }
